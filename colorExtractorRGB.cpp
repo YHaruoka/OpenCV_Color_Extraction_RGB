@@ -5,19 +5,19 @@ using namespace std;
 using namespace cv;
 
 // 抽出する画像の輝度値の範囲を指定
-#define G_MAX 100
-#define G_MIN 0
 #define B_MAX 100
 #define B_MIN 0
+#define G_MAX 100
+#define G_MIN 0
 #define R_MAX 255
 #define R_MIN 100
 
 // RGBの色抽出を行う関数
-bool colorExtractorRGB(unsigned char data_g, 
-	unsigned char data_b, unsigned char data_r)
+bool colorExtractorRGB(unsigned char data_b, 
+	unsigned char data_g, unsigned char data_r)
 {
-	if (G_MIN <= data_g && data_g <= G_MAX) {
-		if (B_MIN <= data_b && data_b <= B_MAX) {
+	if (B_MIN <= data_b && data_b <= B_MAX) {
+		if (G_MIN <= data_g && data_g <= G_MAX) {
 			if (R_MIN <= data_r && data_r <= R_MAX) {
 				return true;
 			}
@@ -32,7 +32,7 @@ int main(void)
 	// 入力画像名(ファイルパス)
 	string input_filename = "input.jpg";
 
-	// 画像を3チャンネル(GBR)で読み込む
+	// 画像を3チャンネル(BGR)で読み込む
 	Mat input_image_rgb = imread(input_filename, CV_LOAD_IMAGE_COLOR);
 	
 	if (input_image_rgb.empty()) {
