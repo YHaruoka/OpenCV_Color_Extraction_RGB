@@ -12,68 +12,42 @@ using namespace cv;
 #define R_MAX 255
 #define R_MIN 100
 
-// RGBの色抽出を行う関数
-bool colorExtractorRGB(unsigned char data_b, 
-	unsigned char data_g, unsigned char data_r)
-{
-	if (B_MIN <= data_b && data_b <= B_MAX) {
-		if (G_MIN <= data_g && data_g <= G_MAX) {
-			if (R_MIN <= data_r && data_r <= R_MAX) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 // メイン関数
-int main(void) 
+int main(void)
 {
 	// 入力画像名(ファイルパス)
 	string input_filename = "input.jpg";
 
 	// 画像を3チャンネル(BGR)で読み込む
 	Mat input_image_rgb = imread(input_filename, CV_LOAD_IMAGE_COLOR);
-	
 	if (input_image_rgb.empty()) {
 		cerr << "入力画像が見つかりません" << endl;
 		return -1;
 	}
 
-	// 一応表示して確認
+	// 表示して確認
 	namedWindow("input_RGB");
 	imshow("input_RGB", input_image_rgb);
 
-	// 抽出した画像を保存するためのMatを作成
-	Mat output_image_rgb = input_image_rgb.clone();
+	// 結果保存用Matを定義
+	Mat mask_image, output_image_rgb;
 
-	// 特定色の抽出
-	for(int y = 0; y < input_image_rgb.rows; y++){
-		for(int x = 0; x < input_image_rgb.cols; x++){
-			int index = y * input_image_rgb.step + x * input_image_rgb.elemSize();
-			
-			// ある画素が設定範囲の色に収まるかを判定
-			bool range = colorExtractorRGB(input_image_rgb.data[index], 
-				input_image_rgb.data[index+1], input_image_rgb.data[index+2]);
-			
-			// 設定範囲に収まる場合は画素をそのまま入力
-			if(range == true){
-				output_image_rgb.data[index] = input_image_rgb.data[index];
-				output_image_rgb.data[index+1] = input_image_rgb.data[index+1];
-				output_image_rgb.data[index+2] = input_image_rgb.data[index+2];
-			}
-			// 収まらない画素は黒にする
-			else {
-				output_image_rgb.data[index] = 0;
-				output_image_rgb.data[index+1] = 0;
-				output_image_rgb.data[index+2] = 0;
-			}
-		}
-	}
+	// inRangeを用いてフィルタリング
+	Scalar s_min = Scalar(B_MIN, G_MIN, R_MIN);
+	Scalar s_max = Scalar(B_MAX, G_MAX, R_MAX);
+	inRange(input_image_rgb, s_min, s_max, mask_image);
+
+	// マスク画像を表示
+	namedWindow("mask");
+	imshow("mask", mask_image);
+	imwrite("mask.jpg", mask_image);
+
+	// マスクを基に入力画像をフィルタリング
+	input_image_rgb.copyTo(output_image_rgb, mask_image);
 
 	// 結果の表示と保存
-	namedWindow("output_RGB");
-	imshow("output_RGB", output_image_rgb);
+	namedWindow("output");
+	imshow("output", output_image_rgb);
 	imwrite("output.jpg", output_image_rgb);
 	waitKey(0);
 
